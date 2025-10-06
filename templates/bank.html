@@ -122,10 +122,10 @@
 <div class="pg-title">AI Bank</div>
 
 <div class="nav-tabs mb-3">
-    <a href="#" class="tab-item act" onclick="return sw('overview',this)">Overview</a>
-    <a href="#" class="tab-item" onclick="return sw('new',this)">New Transaction</a>
+    <a href="#" class="tab-item act" onclick="sw('overview',this,'main')">Overview</a>
+    <a href="#" class="tab-item" onclick="sw('new',this,'main')">New Transaction</a>
     {% if session.get('role') == 'admin' %}
-    <a href="#" class="tab-item" onclick="return sw('admin',this)">Admin Panel</a>
+    <a href="#" class="tab-item" onclick="sw('admin',this,'main')">Admin Panel</a>
     {% endif %}
 </div>
 
