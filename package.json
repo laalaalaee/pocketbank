@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Personal ledger / banking dashboard (Express + Nunjucks, JSON storage)",
+  "description": "Self-hostable ledger and banking dashboard with approvals and an admin panel",
+  "keywords": ["ledger", "banking", "finance", "express", "nunjucks"],
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
