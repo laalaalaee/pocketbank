@@ -9,7 +9,7 @@ import { stringify } from 'csv-stringify/sync';
 
 dotenv.config();
 
-const PORT = Number(process.env.PORT || 9013);
+const PORT = Number(process.env.PORT || 3000);
 const FILES = { BANK: 'data/bank.json', USERS: 'data/users.json' };
 const TXN_TYPES = new Set(['deposit', 'withdraw', 'transfer', 'expense', 'income']);
 const TXN_STATUSES = new Set(['completed', 'pending', 'declined']);
@@ -359,6 +359,66 @@ app.post('/api/bank/admin/delete_txn', loginRequired, adminRequired, async (req,
   await saveBank(bank);
   flash(req, 'success', 'Transaction deleted.');
   res.redirect('/bank');
+});
+
+// ---------- user management (admin) ----------
+app.get('/admin', loginRequired, adminRequired, async (req, res) => {
+  res.render('admin.html', { users: await loadDb(FILES.USERS) });
+});
+
+app.post('/admin', loginRequired, adminRequired, async (req, res) => {
+  const users = await loadDb(FILES.USERS);
+  const action = String(req.body.action || '');
+  const target = String(req.body.target_user || '').trim();
+  const exists = (name) => Object.prototype.hasOwnProperty.call(users, name);
+
+  if (action === 'add_user') {
+    const username = String(req.body.new_username || '').trim();
+    const password = String(req.body.new_password || '');
+    const displayName = String(req.body.new_display_name || '').trim().slice(0, 32);
+    if (!/^[A-Za-z0-9_.-]{3,32}$/.test(username)) {
+      flash(req, 'error', 'Username must be 3-32 characters: letters, numbers, _ . -');
+    } else if (exists(username)) {
+      flash(req, 'error', `User '${username}' already exists.`);
+    } else if (password.length < 8) {
+      flash(req, 'error', 'Password must be at least 8 characters.');
+    } else {
+      users[username] = { password: await bcrypt.hash(password, 12), role: 'user', display_name: displayName || username };
+      await saveDb(FILES.USERS, users);
+      flash(req, 'success', `User '${username}' created.`);
+    }
+    return res.redirect('/admin');
+  }
+
+  if (!target || !exists(target)) return res.redirect('/admin');
+
+  if (action === 'edit_user') {
+    const password = String(req.body.edit_password || '');
+    if (password.length < 8) {
+      flash(req, 'error', 'Password must be at least 8 characters.');
+    } else {
+      users[target].password = await bcrypt.hash(password, 12);
+      await saveDb(FILES.USERS, users);
+      flash(req, 'success', `Password updated for '${target}'.`);
+    }
+  } else if (action === 'promote_user') {
+    users[target].role = 'admin';
+    await saveDb(FILES.USERS, users);
+    flash(req, 'success', `'${target}' promoted to admin.`);
+  } else if (action === 'demote_user' || action === 'delete_user') {
+    if (target === req.session.username) {
+      flash(req, 'error', 'You cannot do that to your own account.');
+    } else if (action === 'demote_user') {
+      users[target].role = 'user';
+      await saveDb(FILES.USERS, users);
+      flash(req, 'success', `'${target}' demoted to user.`);
+    } else {
+      delete users[target];
+      await saveDb(FILES.USERS, users);
+      flash(req, 'success', `User '${target}' removed.`);
+    }
+  }
+  res.redirect('/admin');
 });
 
 app.get('/export/csv', loginRequired, adminRequired, async (req, res) => {

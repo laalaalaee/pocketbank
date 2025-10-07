@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="pg-title">User Management</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="fc">
+            <h5 class="text-white fw-bold mb-3">Create Account</h5>
+            <form method="POST">
+                <input type="hidden" name="action" value="add_user">
+                <input type="text" name="new_username" class="form-control mb-3" placeholder="Username" required>
+                <input type="text" name="new_display_name" class="form-control mb-3" placeholder="Display name (optional)" maxlength="32">
+                <input type="password" name="new_password" class="form-control mb-3" placeholder="Password (min 8 chars)" required>
+                <button type="submit" class="btn btn-primary w-100">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <table class="data-table">
+            <thead><tr><th>User</th><th>Name</th><th>Role</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for username, details in users %}
+                <tr>
+                    <td class="text-white fw-bold">{{ username }}</td>
+                    <td>{{ details.display_name or username }}</td>
+                    <td><span class="badge-t {{ 'bg-danger text-white' if details.role == 'admin' else 'bg-secondary text-white' }}">{{ details.role|upper }}</span></td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-sm btn-outline-info" onclick="document.getElementById('edit-{{ username }}').style.display='block'">
+                                {{ 'Change Password' if username == session.get('username') else 'Reset Password' }}
+                            </button>
+
+                            {% if username != session.get('username') %}
+                                {% if details.role == 'admin' %}
+                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Demote this admin to user?');">
+                                        <input type="hidden" name="action" value="demote_user">
+                                        <input type="hidden" name="target_user" value="{{ username }}">
+                                        <button type="submit" class="btn btn-sm btn-warning">Demote</button>
+                                    </form>
+                                {% else %}
+                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Promote this user to admin (full access)?');">
+                                        <input type="hidden" name="action" value="promote_user">
+                                        <input type="hidden" name="target_user" value="{{ username }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-light">Promote</button>
+                                    </form>
+                                {% endif %}
+
+                                <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this user?');">
+                                    <input type="hidden" name="action" value="delete_user">
+                                    <input type="hidden" name="target_user" value="{{ username }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                        <div id="edit-{{ username }}" style="display:none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; margin-top: 10px;">
+                            <form method="POST">
+                                <input type="hidden" name="action" value="edit_user">
+                                <input type="hidden" name="target_user" value="{{ username }}">
+                                <input type="password" name="edit_password" class="form-control form-control-sm mb-2" placeholder="New password (min 8 chars)" required>
+                                <div class="d-flex gap-2 mt-2">
+                                    <button type="submit" class="btn btn-sm btn-success">Save</button>
+                                    <button type="button" class="btn btn-sm btn-outline-light" onclick="document.getElementById('edit-{{ username }}').style.display='none'">Close</button>
+                                </div>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
