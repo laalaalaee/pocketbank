@@ -196,7 +196,7 @@
             <div class="sc kpi-card glass-panel-pro h-100" style="border:1px solid rgba(245,158,11,0.26)!important;">
                 <div class="sc-label">Pending Count</div>
                 <div class="sc-val">{{ stats.pending_count }}</div>
-                <div class="stat-sub">Needs admin action</div>
+                <div class="stat-sub">Awaiting approval</div>
             </div>
         </div>
         <div class="col-md-6 col-xl-3">
@@ -287,18 +287,19 @@
                         <div class="col-md-6">
                             <label class="text-white mb-1">Category</label>
                             <select name="category" class="form-control" required>
-                                <option>Event</option>
-                                <option>Equipment</option>
-                                <option>Sponsorship</option>
-                                <option>Travel</option>
+                                <option>Salary</option>
                                 <option>Food</option>
-                                <option>Misc</option>
+                                <option>Rent</option>
+                                <option>Bills</option>
+                                <option>Travel</option>
+                                <option>Shopping</option>
+                                <option>Savings</option>
                                 <option>Other</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="text-white mb-1">Description</label>
-                            <input type="text" name="description" class="form-control" placeholder="Mic purchase" required>
+                            <input type="text" name="description" class="form-control" placeholder="Groceries" required>
                         </div>
                         <div class="col-12">
                             <label class="text-white mb-1">Reference (optional)</label>
@@ -344,6 +345,7 @@
                         <div style="font-size:0.85rem; color:var(--t2);">
                             <div><strong>Description:</strong> {{ t.description }}</div>
                             <div><strong>Category:</strong> {{ t.category }}</div>
+                            <div><strong>Account:</strong> {{ t.owner }}</div>
                             <div><strong>By:</strong> {{ t.created_by }}</div>
                             <div><strong>Date:</strong> {{ t.date }}</div>
                         </div>
@@ -372,15 +374,23 @@
         <h6 class="text-white fw-bold mb-3">Add Admin Transaction</h6>
         <div class="mb-3" style="font-size:0.82rem; color:var(--t2); line-height:1.6;">
             <strong style="color:#e5e7eb;">Type</strong> = money nature (deposit, withdraw, income, expense).<br>
-            <strong style="color:#e5e7eb;">Category</strong> = purpose bucket (Event, Equipment, Sponsorship, etc).
+            <strong style="color:#e5e7eb;">Category</strong> = purpose bucket (Food, Rent, Travel, etc).
         </div>
         <form method="POST" action="/api/bank/admin/add_txn">
             <div class="row g-3">
                 <div class="col-md-3">
+                    <label class="text-white mb-1">Account</label>
+                    <select name="owner" class="form-control" required>
+                        {% for u in users %}
+                        <option value="{{ u }}" {% if u == session.get('username') %}selected{% endif %}>{{ u }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label class="text-white mb-1">Date</label>
                     <input type="date" name="date" class="form-control" required>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="text-white mb-1">Type</label>
                     <select name="txn_type" class="form-control" required>
                         <optgroup label="Basic Flow">
@@ -421,6 +431,7 @@
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Account</th>
                         <th>Description</th>
                         <th>Category</th>
                         <th>Type</th>
@@ -430,9 +441,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for t in bank.transactions | reverse %}
+                    {% for t in all_transactions | reverse %}
                     <tr>
                         <td>{{ t.date }}</td>
+                        <td>{{ t.owner }}</td>
                         <td>{{ t.description }}</td>
                         <td>{{ t.category }}</td>
                         <td class="text-uppercase">{{ t.txn_type }}</td>
@@ -449,7 +461,7 @@
                         </td>
                     </tr>
                     <tr id="edit-row-{{ t.id }}" style="display:none;">
-                        <td colspan="7">
+                        <td colspan="8">
                             <form method="POST" action="/api/bank/admin/edit_txn" class="row g-2">
                                 <input type="hidden" name="txn_id" value="{{ t.id }}">
                                 <div class="col-md-2"><input type="date" name="date" value="{{ t.date }}" class="form-control form-control-sm" required></div>
