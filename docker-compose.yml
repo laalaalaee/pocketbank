@@ -1,0 +1,14 @@
+services:
+  pocketbank:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      SESSION_SECRET: ${SESSION_SECRET:-change-me}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+    volumes:
+      - pocketbank-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  pocketbank-data:
