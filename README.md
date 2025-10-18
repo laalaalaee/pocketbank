@@ -1,45 +1,109 @@
 # PocketBank
 
-A small banking / ledger dashboard: track a balance, submit transactions for approval, and manage them from an admin panel. Built with Express, Nunjucks and plain JSON file storage, so it runs with zero setup and is easy to extend.
+[![CI](https://github.com/laalaalaee/pocketbank/actions/workflows/ci.yml/badge.svg)](https://github.com/laalaalaee/pocketbank/actions/workflows/ci.yml)
 
-## Features
+A small, self-hostable ledger. Each user has their own account, transactions go through an approval step, and there is a JSON API plus a one-line widget so other sites can show a balance. Express, Nunjucks and plain JSON files: no database to set up.
 
-- Username/password login (bcrypt, session cookies)
-- Balance, income / expense totals and monthly net at a glance
-- Any user can submit a deposit or withdrawal, which stays **pending** until an admin approves or declines it
-- Admin panel: add, edit and delete transactions, approve the pending queue, export CSV
-- Transaction types: deposit, withdraw, transfer, income, expense, with categories and references
+![Dashboard](docs/dashboard.png)
 
-## Run it locally
+## Quickstart
 
 ```bash
+git clone https://github.com/laalaalaee/pocketbank.git
+cd pocketbank
 npm install
-cp .env.example .env        # then set SESSION_SECRET
-npm run seed                # creates demo data in data/
-npm start                   # http://localhost:3000
+cp .env.example .env      # set SESSION_SECRET
+npm run seed              # demo users and transactions
+npm start                 # http://localhost:3000
 ```
 
-Demo logins created by the seed script: `admin` / `admin123` (admin) and `demo` / `demo123` (regular user). Set `ADMIN_PASSWORD` when seeding to choose your own admin password. Change both before putting this anywhere public.
+Or with Docker: `docker compose up` (seeds demo data on first run).
 
-## Project layout
+**Demo logins** (created by the seed script, change them before deploying anywhere public):
 
+| User | Password | Role |
+|---|---|---|
+| `admin` | `admin123` | admin |
+| `demo` | `demo123` | user |
+
+Use `ADMIN_PASSWORD=... npm run seed` to pick your own admin password. The server prints a warning at startup while a demo password is still in use.
+
+## What it does
+
+- Per-user accounts: everyone sees their own balance and transactions
+- Deposits and withdrawals start as **pending**; an admin approves or declines them, and only approved ones change the balance
+- Admin panel: add, edit and delete transactions on any account, approve the queue, export CSV
+- User management: create users, reset passwords, promote or demote, remove
+- API keys (read-only or read+write), a JSON API and an embeddable widget
+- Money is summed in integer paise, so balances never drift
+
+| Admin panel | API keys |
+|---|---|
+| ![Admin panel](docs/admin-panel.png) | ![API keys](docs/api-keys.png) |
+
+## API
+
+Create a key under **API Keys** in the app. It is shown once and stored hashed. A key acts as the account that created it.
+
+```bash
+curl -H "Authorization: Bearer pk_..." http://localhost:3000/api/v1/balance
 ```
-app.js            server, routes and transaction logic
-templates/        Nunjucks views (base, login, bank dashboard)
-scripts/seed.js   demo users and transactions
-data/             runtime JSON storage (git-ignored)
+```json
+{ "account": "demo", "currency": "INR", "balance": 6250.5, "total_in": 8000, "total_out": 1749.5, "pending_count": 1 }
 ```
+
+| Method | Path | Scope | Description |
+|---|---|---|---|
+| GET | `/api/v1/balance` | read | Balance and totals for the key's account |
+| GET | `/api/v1/transactions?limit=20&status=completed` | read | Latest transactions (max 100) |
+| POST | `/api/v1/transactions` | write | Create a **pending** transaction |
+
+```bash
+curl -X POST http://localhost:3000/api/v1/transactions \
+  -H "Authorization: Bearer pk_..." -H "Content-Type: application/json" \
+  -d '{"type":"deposit","amount":500,"description":"Top up","category":"Savings"}'
+```
+
+`type` is `deposit` or `withdraw`, `amount` is a positive number. Errors are JSON: `{ "error": "..." }` with status 400, 401, 403 or 429 (120 requests per minute per key).
+
+## Embed on a website
+
+```html
+<div id="pocketbank"></div>
+<script src="https://YOUR_HOST/widget.js" data-key="pk_READ_ONLY_KEY"></script>
+```
+
+![Widget](docs/widget.png)
+
+Optional attributes: `data-target` (element id, default `pocketbank`) and `data-limit` (rows, default 5). See [examples/embed.html](examples/embed.html). Anything in a public page is visible to its visitors, so **use a read-only key**.
+
+## Configuration
+
+| Variable | Default | |
+|---|---|---|
+| `PORT` | `3000` | |
+| `SESSION_SECRET` | random per start | Set it, or sessions reset on every restart |
+| `DATA_DIR` | `./data` | Where the JSON files live |
+| `TRUST_PROXY` | `false` | Set `true` behind a reverse proxy so rate limits see real client IPs |
+| `COOKIE_SECURE` | `false` | Set `true` when serving over HTTPS |
+
+## Development
+
+```bash
+npm test     # ledger rules, auth, API keys, rate limiting, cross-site protection
+npm run dev  # restart on change
+```
+
+Layout: `app.js` (routes), `lib/` (ledger maths, storage, rate limiter), `templates/`, `public/widget.js`, `scripts/seed.js`, `test/`. Why things are built the way they are: [DECISIONS.md](DECISIONS.md).
 
 ## Background
 
-This started as the treasury module of Playstorm Esports Club's internal management system at Amity University, which handled data for 1,200+ members. The bank part was extracted into a standalone project and is being rebuilt as a general-purpose banking platform.
+This started as the treasury module of Playstorm Esports Club's internal management system at Amity University, which handled data for 1,200+ members. The bank part was extracted into a standalone project and rebuilt: per-user accounts, an API and tests were added after the extraction.
 
 ## Roadmap
 
-- [ ] JSON API with per-user API keys, plus an embeddable widget
-- [ ] CSRF protection and login rate limiting
-- [ ] Move storage from JSON files to SQLite/Postgres
-- [ ] Multiple accounts per user and transfers between them
-- [ ] Charts and monthly statements
+- [ ] SQLite storage
+- [ ] Transfers between accounts
+- [ ] Monthly statements and charts
 - [ ] Spending categorisation and insights
-- [ ] Tests and CI
+- [ ] Per-session CSRF tokens
