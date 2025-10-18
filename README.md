@@ -98,7 +98,7 @@ Layout: `app.js` (routes), `lib/` (ledger maths, storage, rate limiter), `templa
 
 ## Background
 
-This started as the treasury module of Playstorm Esports Club's internal management system at Amity University, which handled data for 1,200+ members. The bank part was extracted into a standalone project and rebuilt: per-user accounts, an API and tests were added after the extraction.
+This started in early 2026 as the treasury module of Playstorm Esports Club's internal management system at Amity University, which handled data for 1,200+ members. At the time the work lived in zip files and a hosting panel rather than git, so the first commit here is the extracted original. The per-user accounts, API, widget, tests and Docker setup were added in October 2026 and are dated accordingly.
 
 ## Roadmap
 
