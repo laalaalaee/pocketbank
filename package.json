@@ -1,0 +1,23 @@
+{
+  "name": "ai-bank",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Personal ledger / banking dashboard (Express + Nunjucks, JSON storage)",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "csv-stringify": "^6.5.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.17.3",
+    "nunjucks": "^3.2.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

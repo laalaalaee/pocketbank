@@ -1,0 +1,749 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .bank-hero {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.16) 0%, rgba(17, 17, 24, 0.72) 45%, rgba(16, 185, 129, 0.12) 100%);
+    }
+    .bank-hero::before {
+        content: '';
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        right: -90px;
+        top: -90px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, transparent 72%);
+        pointer-events: none;
+    }
+    .bank-hero::after {
+        content: '';
+        position: absolute;
+        width: 240px;
+        height: 240px;
+        left: -120px;
+        bottom: -120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.28) 0%, transparent 72%);
+        pointer-events: none;
+    }
+    .bank-balance-amount {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        letter-spacing: -1px;
+        line-height: 1.1;
+        font-weight: 900;
+        color: #fff;
+    }
+    .bank-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(0, 0, 0, 0.2);
+        color: #e4e4e7;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+    }
+    .kpi-card {
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+    }
+    .flow-card {
+        border: 1px solid rgba(16, 185, 129, 0.22);
+        background: linear-gradient(160deg, rgba(16, 185, 129, 0.12) 0%, rgba(17, 17, 24, 0.72) 50%, rgba(99, 102, 241, 0.1) 100%);
+    }
+    .recent-table-pro tbody tr {
+        transition: transform 0.14s ease, background-color 0.14s ease;
+    }
+    .recent-table-pro tbody tr:hover {
+        transform: scale(1.005);
+        background: rgba(255, 255, 255, 0.03);
+    }
+    .glass-panel-pro {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.14) 0%, rgba(24, 24, 34, 0.52) 58%, rgba(255, 255, 255, 0.1) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.24) !important;
+        backdrop-filter: blur(26px) saturate(135%) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    }
+    .glass-table-wrap {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.09) 0%, rgba(24, 24, 34, 0.5) 100%);
+        backdrop-filter: blur(22px) saturate(130%);
+        overflow: hidden;
+    }
+    .date-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.03);
+        color: #d4d4d8;
+        font-size: 0.76rem;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+    .date-rel {
+        color: #a1a1aa;
+        font-size: 0.72rem;
+        margin-left: 6px;
+    }
+    .stat-sub {
+        font-size: 0.72rem;
+        color: var(--t2);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+</style>
+<div class="pg-title">AI Bank</div>
+
+<div class="nav-tabs mb-3">
+    <a href="#" class="tab-item act" onclick="return sw('overview',this)">Overview</a>
+    <a href="#" class="tab-item" onclick="return sw('new',this)">New Transaction</a>
+    {% if session.get('role') == 'admin' %}
+    <a href="#" class="tab-item" onclick="return sw('admin',this)">Admin Panel</a>
+    {% endif %}
+</div>
+
+<div id="v-overview" class="bsec on">
+    <div class="row g-4 mb-4">
+        <div class="col-xl-8">
+            <div class="fc bank-hero glass-panel-pro p-4 p-lg-5 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-4" style="position:relative;z-index:2;">
+                    <div>
+                        <div class="bank-pill mb-3"><i class="bi bi-shield-check"></i> Personal Vault</div>
+                        <div class="sc-label mb-2">Available Balance</div>
+                        <div class="bank-balance-amount">
+                            <span id="bal-visible">₹{{ bank.balance | money }}</span>
+                            <span id="bal-hidden" style="display:none;">₹••••••</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-light" onclick="toggleBal('bal-hidden','bal-visible','bal-eye')" style="position:relative;z-index:2;">
+                        <i id="bal-eye" class="bi bi-eye-slash"></i>
+                    </button>
+                </div>
+                <div class="row g-3" style="position:relative;z-index:2;">
+                    <div class="col-md-4">
+                        <div class="bank-pill w-100 justify-content-center"><i class="bi bi-calendar-week"></i> This Month</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bank-pill w-100 justify-content-center"><i class="bi bi-hourglass-split"></i> Pending {{ stats.pending_count }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bank-pill w-100 justify-content-center"><i class="bi bi-graph-up-arrow"></i> Live Ledger</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="fc flow-card glass-panel-pro h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="sc-label">Cashflow Pulse</div>
+                        <div class="text-white fw-bold">Last 12 completed txns</div>
+                    </div>
+                    <i class="bi bi-activity" style="font-size:1.3rem;color:#34d399;"></i>
+                </div>
+                <canvas id="overview-cashflow" height="120" style="width:100%;"></canvas>
+                <div class="d-flex justify-content-between mt-2" style="font-size:0.72rem;color:var(--t2);">
+                    <span><i class="bi bi-square-fill text-success"></i> Credit</span>
+                    <span><i class="bi bi-square-fill text-danger"></i> Debit</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="sc kpi-card glass-panel-pro h-100" style="border:1px solid rgba(16,185,129,0.26)!important;">
+                <div class="sc-label">Total In</div>
+                <div class="sc-val text-success">₹{{ stats.total_in | money }}</div>
+                <div class="stat-sub">All completed credits</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="sc kpi-card glass-panel-pro h-100" style="border:1px solid rgba(239,68,68,0.26)!important;">
+                <div class="sc-label">Total Out</div>
+                <div class="sc-val text-danger">₹{{ stats.total_out | money }}</div>
+                <div class="stat-sub">All completed debits</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="sc kpi-card glass-panel-pro h-100" style="border:1px solid rgba(245,158,11,0.26)!important;">
+                <div class="sc-label">Pending Count</div>
+                <div class="sc-val">{{ stats.pending_count }}</div>
+                <div class="stat-sub">Needs admin action</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="sc kpi-card glass-panel-pro h-100" style="border:1px solid rgba(99,102,241,0.28)!important;">
+                <div class="sc-label">This Month Net</div>
+                <div class="sc-val {{ 'text-success' if stats.this_month_net >= 0 else 'text-danger' }}">₹{{ stats.this_month_net | money }}</div>
+                <div class="stat-sub">Month-to-date position</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fc glass-panel-pro">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-white fw-bold mb-0">Recent Transactions</h5>
+            <div class="d-flex gap-2 align-items-center">
+                <button id="recent-prev" class="btn btn-sm btn-outline-light" type="button" onclick="return recentPrevPage()">Prev</button>
+                <span id="recent-page" style="font-size:0.8rem;color:var(--t2);"></span>
+                <button id="recent-next" class="btn btn-sm btn-outline-light" type="button" onclick="return recentNextPage()">Next</button>
+            </div>
+        </div>
+        <div class="table-responsive glass-table-wrap">
+            <table class="data-table recent-table-pro mb-0" id="recent-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in recent_transactions %}
+                    <tr class="txn-row" style="cursor:pointer;"
+                        data-id="{{ t.id }}"
+                        data-date="{{ t.date }}"
+                        data-amount="{{ t.amount }}"
+                        data-type="{{ t.txn_type }}"
+                        data-category="{{ t.category }}"
+                        data-description="{{ t.description }}"
+                        data-reference="{{ t.reference }}"
+                        data-created-by="{{ t.created_by }}"
+                        data-created-at="{{ t.created_at }}"
+                        data-status="{{ t.status }}">
+                        <td>
+                            <span class="date-chip">
+                                <i class="bi bi-calendar3"></i>
+                                <span class="js-date" data-date="{{ t.date }}">{{ t.date | date_human }}</span>
+                                <span class="date-rel js-date-rel" data-date="{{ t.date }}"></span>
+                            </span>
+                        </td>
+                        <td class="text-white">{{ t.description }}</td>
+                        <td>{{ t.category }}</td>
+                        <td>
+                            <span class="badge rounded-pill bg-dark text-uppercase">{{ t.txn_type }}</span>
+                        </td>
+                        <td class="fw-bold {{ 'text-success' if t.amount >= 0 else 'text-danger' }}">₹{{ t.amount | money }}</td>
+                        <td>
+                            <span class="badge {{ 'bg-success' if t.status == 'completed' else ('bg-warning text-dark' if t.status == 'pending' else 'bg-danger') }} text-uppercase">{{ t.status }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="v-new" class="bsec">
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <div class="fc">
+                <h5 class="text-white fw-bold mb-3">Create New Transaction</h5>
+                <form method="POST" action="/api/bank/action">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-white mb-1">Type</label>
+                            <select name="action_type" class="form-control" required>
+                                <option value="deposit">Deposit</option>
+                                <option value="withdraw">Withdraw</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-white mb-1">Amount</label>
+                            <input type="number" step="0.01" min="0.01" name="amount" class="form-control" placeholder="Amount (₹)" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-white mb-1">Category</label>
+                            <select name="category" class="form-control" required>
+                                <option>Event</option>
+                                <option>Equipment</option>
+                                <option>Sponsorship</option>
+                                <option>Travel</option>
+                                <option>Food</option>
+                                <option>Misc</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-white mb-1">Description</label>
+                            <input type="text" name="description" class="form-control" placeholder="Mic purchase" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-white mb-1">Reference (optional)</label>
+                            <input type="text" name="reference" class="form-control" placeholder="INV-2026-001">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3 w-100">
+                        Submit For Approval
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="sc h-100">
+                <div class="sc-label">Flow</div>
+                <div style="color:var(--t2); font-size:0.9rem; line-height:1.6;">
+                    Every New Transaction is created as pending request first. Admin approval converts it to completed and only then it affects balance.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if session.get('role') == 'admin' %}
+<div id="v-admin" class="bsec">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-white fw-bold mb-0">Admin Bank Controls</h5>
+        <a href="/export/csv?target=bank" class="btn btn-sm btn-outline-info">Export CSV</a>
+    </div>
+
+    <div class="fc mb-4">
+        <h6 class="text-white fw-bold mb-3">Pending Approvals</h6>
+        <div class="mb-2" style="font-size:0.78rem;color:var(--t2);">Pending transactions do not affect balance until approved as completed.</div>
+        {% if pending_transactions.length %}
+            <div class="row g-3">
+                {% for t in pending_transactions %}
+                <div class="col-lg-6">
+                    <div class="sc h-100" style="border:1px solid rgba(245,158,11,0.35);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong class="text-white text-uppercase">{{ t.txn_type }}</strong>
+                            <span class="fw-bold {{ 'text-success' if t.amount >= 0 else 'text-danger' }}">₹{{ t.amount | money }}</span>
+                        </div>
+                        <div style="font-size:0.85rem; color:var(--t2);">
+                            <div><strong>Description:</strong> {{ t.description }}</div>
+                            <div><strong>Category:</strong> {{ t.category }}</div>
+                            <div><strong>By:</strong> {{ t.created_by }}</div>
+                            <div><strong>Date:</strong> {{ t.date }}</div>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <form method="POST" action="/api/bank/pending_action" style="display:inline;">
+                                <input type="hidden" name="txn_id" value="{{ t.id }}">
+                                <input type="hidden" name="decision" value="approve">
+                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                            </form>
+                            <form method="POST" action="/api/bank/pending_action" style="display:inline;">
+                                <input type="hidden" name="txn_id" value="{{ t.id }}">
+                                <input type="hidden" name="decision" value="decline">
+                                <button type="submit" class="btn btn-sm btn-danger">Decline</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="color:var(--t2);">No pending approvals.</div>
+        {% endif %}
+    </div>
+
+    <div class="fc mb-4">
+        <h6 class="text-white fw-bold mb-3">Add Admin Transaction</h6>
+        <div class="mb-3" style="font-size:0.82rem; color:var(--t2); line-height:1.6;">
+            <strong style="color:#e5e7eb;">Type</strong> = money nature (deposit, withdraw, income, expense).<br>
+            <strong style="color:#e5e7eb;">Category</strong> = purpose bucket (Event, Equipment, Sponsorship, etc).
+        </div>
+        <form method="POST" action="/api/bank/admin/add_txn">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="text-white mb-1">Date</label>
+                    <input type="date" name="date" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-white mb-1">Type</label>
+                    <select name="txn_type" class="form-control" required>
+                        <optgroup label="Basic Flow">
+                            <option value="deposit">Deposit (money in)</option>
+                            <option value="withdraw">Withdraw (money out)</option>
+                        </optgroup>
+                        <optgroup label="Accounting">
+                            <option value="income">Income (money in)</option>
+                            <option value="expense">Expense (money out)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-white mb-1">Amount</label>
+                    <input type="number" step="0.01" name="amount" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-white mb-1">Category</label>
+                    <input type="text" name="category" class="form-control" value="Misc" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-white mb-1">Description</label>
+                    <input type="text" name="description" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-white mb-1">Reference</label>
+                    <input type="text" name="reference" class="form-control">
+                </div>
+            </div>
+            <button class="btn btn-primary mt-3">Add Transaction</button>
+        </form>
+    </div>
+
+    <div class="fc">
+        <h6 class="text-white fw-bold mb-3">Edit / Delete Transactions</h6>
+        <div class="table-responsive">
+            <table class="data-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in bank.transactions | reverse %}
+                    <tr>
+                        <td>{{ t.date }}</td>
+                        <td>{{ t.description }}</td>
+                        <td>{{ t.category }}</td>
+                        <td class="text-uppercase">{{ t.txn_type }}</td>
+                        <td class="{{ 'text-success' if t.amount >= 0 else 'text-danger' }}">₹{{ t.amount | money }}</td>
+                        <td><span class="badge {{ 'bg-success' if t.status == 'completed' else ('bg-warning text-dark' if t.status == 'pending' else 'bg-danger') }}">{{ t.status }}</span></td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="toggleEditForm('{{ t.id }}')">Edit</button>
+                                <form method="POST" action="/api/bank/admin/delete_txn" style="display:inline;" onsubmit="return confirm('Delete this transaction?');">
+                                    <input type="hidden" name="txn_id" value="{{ t.id }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="edit-row-{{ t.id }}" style="display:none;">
+                        <td colspan="7">
+                            <form method="POST" action="/api/bank/admin/edit_txn" class="row g-2">
+                                <input type="hidden" name="txn_id" value="{{ t.id }}">
+                                <div class="col-md-2"><input type="date" name="date" value="{{ t.date }}" class="form-control form-control-sm" required></div>
+                                <div class="col-md-2"><input type="number" step="0.01" name="amount" value="{{ t.amount }}" class="form-control form-control-sm" required></div>
+                                <div class="col-md-2"><input type="text" name="category" value="{{ t.category }}" class="form-control form-control-sm" required></div>
+                                <div class="col-md-2">
+                                    <select name="status" class="form-control form-control-sm" required>
+                                        <option value="completed" {% if t.status == 'completed' %}selected{% endif %}>completed</option>
+                                        <option value="pending" {% if t.status == 'pending' %}selected{% endif %}>pending</option>
+                                        <option value="declined" {% if t.status == 'declined' %}selected{% endif %}>declined</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3"><input type="text" name="description" value="{{ t.description }}" class="form-control form-control-sm" required></div>
+                                <div class="col-md-2"><input type="text" name="reference" value="{{ t.reference }}" class="form-control form-control-sm"></div>
+                                <div class="col-md-1 d-grid"><button class="btn btn-sm btn-success">Save</button></div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="modal fade" id="txnDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="background:var(--card-bg); border:1px solid rgba(255,255,255,0.15);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">Transaction Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="txn-detail-body" style="color:var(--t1);"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteTxnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:var(--card-bg); border:1px solid rgba(255,255,255,0.15);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">Delete Transaction</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="/api/bank/admin/delete_txn">
+                <div class="modal-body" style="color:var(--t1);">
+                    <input type="hidden" name="txn_id" id="delete-txn-id">
+                    <div>Delete this transaction?</div>
+                    <div id="delete-txn-desc" style="font-size:0.9rem;color:var(--t2);"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const rows = Array.from(document.querySelectorAll('#recent-table tbody tr'));
+        const pageSize = 10;
+        let page = 1;
+        const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+
+        function renderPage() {
+            rows.forEach((row, idx) => {
+                const start = (page - 1) * pageSize;
+                const end = page * pageSize;
+                row.style.display = idx >= start && idx < end ? '' : 'none';
+            });
+            const pageNode = document.getElementById('recent-page');
+            if (pageNode) pageNode.textContent = `${page} / ${totalPages}`;
+
+            const prevBtn = document.getElementById('recent-prev');
+            const nextBtn = document.getElementById('recent-next');
+            if (prevBtn) {
+                prevBtn.disabled = page <= 1;
+                prevBtn.style.opacity = page <= 1 ? '0.45' : '1';
+            }
+            if (nextBtn) {
+                nextBtn.disabled = page >= totalPages;
+                nextBtn.style.opacity = page >= totalPages ? '0.45' : '1';
+            }
+        }
+
+        window.recentPrevPage = function () {
+            page = Math.max(1, page - 1);
+            renderPage();
+            return false;
+        };
+
+        window.recentNextPage = function () {
+            page = Math.min(totalPages, page + 1);
+            renderPage();
+            return false;
+        };
+
+        renderPage();
+
+        function drawCashflowMiniChart() {
+            const canvas = document.getElementById('overview-cashflow');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const txns = rows
+                .map((row) => Number(row.getAttribute('data-amount') || 0))
+                .filter((v) => Number.isFinite(v))
+                .slice(0, 12)
+                .reverse();
+
+            const width = canvas.clientWidth || 360;
+            const height = Number(canvas.getAttribute('height') || 120);
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.clearRect(0, 0, width, height);
+            if (!txns.length) return;
+
+            const maxAbs = Math.max(...txns.map((v) => Math.abs(v)), 1);
+            const baseline = Math.round(height * 0.5);
+            const barGap = 8;
+            const barWidth = Math.max(8, Math.floor((width - (txns.length + 1) * barGap) / txns.length));
+
+            // baseline glow
+            ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, baseline + 0.5);
+            ctx.lineTo(width, baseline + 0.5);
+            ctx.stroke();
+
+            txns.forEach((value, i) => {
+                const x = barGap + i * (barWidth + barGap);
+                const h = Math.max(4, Math.round((Math.abs(value) / maxAbs) * (height * 0.4)));
+                const y = value >= 0 ? baseline - h : baseline;
+                const gradient = ctx.createLinearGradient(0, y, 0, y + h);
+                if (value >= 0) {
+                    gradient.addColorStop(0, 'rgba(16,185,129,0.95)');
+                    gradient.addColorStop(1, 'rgba(16,185,129,0.38)');
+                } else {
+                    gradient.addColorStop(0, 'rgba(239,68,68,0.95)');
+                    gradient.addColorStop(1, 'rgba(239,68,68,0.38)');
+                }
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, y, barWidth, h);
+            });
+        }
+
+        drawCashflowMiniChart();
+        window.addEventListener('resize', drawCashflowMiniChart);
+
+        const detailModalEl = document.getElementById('txnDetailModal');
+        const detailModal = detailModalEl ? new bootstrap.Modal(detailModalEl) : null;
+        rows.forEach((row) => {
+            row.addEventListener('mouseenter', function () {
+                row.style.background = 'rgba(255,255,255,0.035)';
+            });
+            row.addEventListener('mouseleave', function () {
+                row.style.background = '';
+            });
+            row.addEventListener('click', function () {
+                if (!detailModal) return;
+                const txn = {
+                    id: row.getAttribute('data-id') || '',
+                    date: row.getAttribute('data-date') || '',
+                    amount: Number(row.getAttribute('data-amount') || 0),
+                    txn_type: row.getAttribute('data-type') || '',
+                    category: row.getAttribute('data-category') || '',
+                    description: row.getAttribute('data-description') || '',
+                    reference: row.getAttribute('data-reference') || '',
+                    created_by: row.getAttribute('data-created-by') || '',
+                    created_at: row.getAttribute('data-created-at') || '',
+                    status: row.getAttribute('data-status') || '',
+                };
+                const body = document.getElementById('txn-detail-body');
+                if (!body) return;
+                body.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-6"><strong>ID:</strong><br>${txn.id || '-'}</div>
+                        <div class="col-md-6"><strong>Status:</strong><br>${txn.status || '-'}</div>
+                        <div class="col-md-4"><strong>Date:</strong><br>${formatReadableDate(txn.date) || '-'} <span class="date-rel">${formatRelativeDate(txn.date)}</span></div>
+                        <div class="col-md-4"><strong>Type:</strong><br>${txn.txn_type || '-'}</div>
+                        <div class="col-md-4"><strong>Amount:</strong><br>₹${Number(txn.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        <div class="col-md-6"><strong>Category:</strong><br>${txn.category || '-'}</div>
+                        <div class="col-md-6"><strong>Reference:</strong><br>${txn.reference || '-'}</div>
+                        <div class="col-12"><strong>Description:</strong><br>${txn.description || '-'}</div>
+                        <div class="col-md-6"><strong>Created By:</strong><br>${txn.created_by || '-'}</div>
+                        <div class="col-md-6"><strong>Created At:</strong><br>${formatReadableDateTime(txn.created_at) || '-'} <span class="date-rel">${formatRelativeDateTime(txn.created_at)}</span></div>
+                    </div>
+                `;
+                detailModal.show();
+            });
+        });
+
+        function formatReadableDate(raw) {
+            const s = String(raw || '').trim();
+            if (!s) return '';
+            const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(`${s}T00:00:00`) : new Date(s);
+            if (Number.isNaN(d.getTime())) return s;
+            return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).format(d);
+        }
+
+        function formatReadableDateTime(raw) {
+            const s = String(raw || '').trim();
+            if (!s) return '';
+            const d = new Date(s);
+            if (Number.isNaN(d.getTime())) return s;
+            return new Intl.DateTimeFormat('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(d);
+        }
+
+        function formatRelativeDate(raw) {
+            const s = String(raw || '').trim();
+            if (!s) return '';
+            const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(`${s}T00:00:00`) : new Date(s);
+            if (Number.isNaN(d.getTime())) return '';
+
+            const now = new Date();
+            const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+            const b = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const diffDays = Math.round((a - b) / 86400000);
+
+            if (diffDays === 0) return 'Today';
+            if (diffDays === -1) return 'Yesterday';
+            if (diffDays === 1) return 'Tomorrow';
+            if (diffDays < 0) return `${Math.abs(diffDays)}d ago`;
+            return `in ${diffDays}d`;
+        }
+
+        function formatRelativeDateTime(raw) {
+            const s = String(raw || '').trim();
+            if (!s) return '';
+            const d = new Date(s);
+            if (Number.isNaN(d.getTime())) return '';
+
+            const diffMs = d.getTime() - Date.now();
+            const absMs = Math.abs(diffMs);
+            const mins = Math.round(absMs / 60000);
+            const hours = Math.round(absMs / 3600000);
+            const days = Math.round(absMs / 86400000);
+
+            if (mins < 1) return 'just now';
+            if (mins < 60) return diffMs < 0 ? `${mins}m ago` : `in ${mins}m`;
+            if (hours < 24) return diffMs < 0 ? `${hours}h ago` : `in ${hours}h`;
+            if (days === 1) return diffMs < 0 ? 'Yesterday' : 'Tomorrow';
+            return diffMs < 0 ? `${days}d ago` : `in ${days}d`;
+        }
+
+        document.querySelectorAll('.js-date').forEach((node) => {
+            const raw = node.getAttribute('data-date') || node.textContent;
+            node.textContent = formatReadableDate(raw);
+        });
+        document.querySelectorAll('.js-date-rel').forEach((node) => {
+            const raw = node.getAttribute('data-date') || '';
+            const rel = formatRelativeDate(raw);
+            node.textContent = rel ? `• ${rel}` : '';
+        });
+    })();
+
+    function toggleEditForm(txnId) {
+        const el = document.getElementById('edit-row-' + txnId);
+        if (!el) return;
+        el.style.display = el.style.display === 'none' ? '' : 'none';
+    }
+
+    function openDeleteModal(targetOrId, description) {
+        let txnId = targetOrId;
+        let desc = description || '';
+
+        if (targetOrId && typeof targetOrId.getAttribute === 'function') {
+            txnId = targetOrId.getAttribute('data-txn-id') || '';
+            desc = targetOrId.getAttribute('data-txn-desc') || '';
+        }
+
+        const idNode = document.getElementById('delete-txn-id');
+        const descNode = document.getElementById('delete-txn-desc');
+        if (idNode) idNode.value = txnId;
+        if (descNode) descNode.textContent = desc;
+        const modalEl = document.getElementById('deleteTxnModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    }
+</script>
+{% endblock %}
