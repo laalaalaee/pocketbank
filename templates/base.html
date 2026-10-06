@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bank</title>
+    <title>PocketBank</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -222,7 +222,7 @@
 </head>
 <body class="{% if request.path == '/' %}page-home{% elif request.path == '/bank' %}page-bank{% elif request.path == '/admin' %}page-admin{% elif request.path == '/login' or request.path == '/register' %}page-auth{% endif %}">
     <div class="sidebar">
-        <div class="sidebar-brand">AI<span>BANK</span></div>
+        <div class="sidebar-brand">POCKET<span>BANK</span></div>
         <a href="/bank" class="nav-item active"><i class="bi bi-bank2"></i> Dashboard</a>
 
         <a href="/logout" class="nav-item text-danger" style="margin-top:auto;"><i class="bi bi-box-arrow-right"></i> Logout</a>

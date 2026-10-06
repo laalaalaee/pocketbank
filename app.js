@@ -372,4 +372,4 @@ app.get('/export/csv', loginRequired, adminRequired, async (req, res) => {
   res.send(csv);
 });
 
-app.listen(PORT, () => console.log(`AI Bank running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`PocketBank running at http://localhost:${PORT}`));

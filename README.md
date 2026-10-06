@@ -1,4 +1,4 @@
-# AI Bank
+# PocketBank
 
 A small banking / ledger dashboard: track a balance, submit transactions for approval, and manage them from an admin panel. Built with Express, Nunjucks and plain JSON file storage, so it runs with zero setup and is easy to extend.
 
