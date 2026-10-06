@@ -4,66 +4,355 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Bank</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        :root { --bg: #0a0a0f; --card-bg: #14141c; --t1: #f3f4f6; --t2: #9ca3af; --accent: #6366f1; }
-        body { background: var(--bg); color: var(--t1); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
-        .topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 28px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .topbar .brand { font-weight: 800; letter-spacing: .12em; }
-        .topbar .brand span { color: var(--accent); }
-        .topbar a { color: var(--t2); text-decoration: none; margin-left: 16px; }
-        .topbar a:hover { color: var(--t1); }
-        .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
-        .pg-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 18px; }
-        .fc, .sc, .glass-panel-pro { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; }
-        .sc-label { color: var(--t2); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
-        .sc-val { font-size: 1.5rem; font-weight: 800; }
-        .nav-tabs { display: flex; gap: 8px; border: 0; }
-        .tab-item { color: var(--t2); text-decoration: none; padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); }
-        .tab-item.act { color: #fff; background: rgba(99,102,241,.25); border-color: rgba(99,102,241,.5); }
+        :root {
+            --bg-dark: #141418; --bg-surface: #141418; --card-bg: rgba(20,20,24,0.85); --card-hover: rgba(28,28,34,0.9);
+            --border: rgba(255,255,255,0.06); --border-active: rgba(228,69,255,0.25);
+            --accent: #E445FF; --accent-glow: rgba(228,69,255,0.15);
+            --arena: #f97316; --arena-glow: rgba(249,115,22,0.15);
+            --green: #10b981; --red: #ef4444; --yellow: #f59e0b;
+            --t1: #f4f4f5; --t2: #a1a1aa; --t3: #52525b;
+        }
+        body {
+            background: #141418;
+            color: #f3f4f6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            margin: 0; padding-bottom: 50px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body {
+            --cursor-default: url('/cursors/cursor1.png') 4 2, auto;
+            --cursor-pointer: url('/cursors/cursor2.png') 6 2, pointer;
+            cursor: var(--cursor-default) !important;
+        }
+        a, button, .btn, [role="button"], .nav-item, .tab-item, .form-check-input, summary,
+        a *, button *, .btn *, [role="button"] *, .nav-item *, .tab-item *, .form-check-input *, summary * {
+            cursor: url('/cursors/cursor2.png'), pointer !important;
+        }
+        input,
+        textarea,
+        select {
+            cursor: text !important;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Orbitron', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            letter-spacing: 0.08em;
+        }
+        .text-gradient {
+            background: linear-gradient(90deg, #E445FF, #FF8CF5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        .glass, .sc, .fc, .data-table {
+            background: rgba(255,255,255,0.02)!important;
+            backdrop-filter: blur(16px)!important;
+            border: 1px solid rgba(228,69,255,0.3)!important;
+            border-radius: 1rem!important;
+        }
+        .glow {
+            box-shadow: 0 0 30px rgba(228,69,255, 0.4);
+        }
+        .glow-hover:hover {
+            box-shadow: 0 0 40px rgba(228,69,255, 0.6);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #141418;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #E445FF, #6366f1);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #FF8CF5, #6366f1);
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .glass-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .glass-bg .circle1 {
+            position: absolute; left: 10vw; top: 10vh; width: 420px; height: 420px;
+            background: radial-gradient(circle, #E445FF 0%, transparent 70%);
+            opacity: 0.18; filter: blur(30px);
+        }
+        .glass-bg .circle2 {
+            position: absolute; right: 8vw; bottom: 8vh; width: 340px; height: 340px;
+            background: radial-gradient(circle, #f97316 0%, transparent 70%);
+            opacity: 0.13; filter: blur(30px);
+        }
+        .glass-bg .circle3 {
+            position: absolute; left: 50vw; top: 60vh; width: 220px; height: 220px;
+            background: radial-gradient(circle, #10b981 0%, transparent 70%);
+            opacity: 0.10; filter: blur(30px);
+        }
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 256px; background: rgba(20,20,24,0.6); border-right: 1px solid rgba(228,69,255,0.08); padding: 24px 14px; z-index: 100; display: flex; flex-direction: column; overflow-y: auto; backdrop-filter: blur(24px) saturate(150%); box-shadow: 4px 0 24px 0 rgba(0,0,0,0.4); }
+        .sidebar-brand { font-weight: 900; font-size: 1.15rem; color: #fff; padding: 8px 12px; margin-bottom: 25px; }
+        .sidebar-brand span { color: var(--accent); }
+                .nav-sec {
+                    font-size: 0.62rem;
+                    text-transform: uppercase;
+                    letter-spacing: 2.5px;
+                    color: var(--t3);
+                    padding: 0 12px;
+                    margin: 20px 0 8px;
+                    font-weight: 700;
+                    text-shadow: 0 0 8px rgba(228,69,255,0.35), 0 0 2px #E445FF;
+                    transition: text-shadow 0.2s;
+                }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; color: var(--t2); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: 0.2s; text-decoration: none; margin-bottom: 4px; }
+        .nav-item:hover { background: rgba(255,255,255,0.04); color: #fff; }
+        .nav-item.active { background: var(--accent-glow); color: var(--accent); font-weight: 700; border-left: 3px solid var(--accent); }
+        .nav-item i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* Main Content */
+        .main { margin-left: 256px; padding: 32px 40px; min-height: 100vh; position: relative; z-index: 1; }
+        .pg-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;}
+        
+        /* Sub Tabs */
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; overflow-x: auto; white-space: nowrap; }
+        .tab-item { color: var(--t2); text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+        .tab-item.act { background: var(--accent); color: white; }
+        .tab-item.act-a { background: var(--arena); color: white; }
+        .tab-item:hover { background: var(--card-hover); color: white; }
+
+        /* UI Elements */
+        .sc { background: rgba(20, 20, 24, 0.65)!important; border: 1.5px solid rgba(228,69,255,0.15)!important; border-radius: 16px; padding: 24px 28px; box-shadow: 0 8px 32px 0 rgba(228,69,255,0.10)!important; backdrop-filter: blur(18px)!important; }
+        .sc-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); font-weight: 700; margin-bottom: 8px; }
+        .sc-val { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; color: #fff; display: flex; align-items: center;}
+        .b-accent { border-bottom: 3px solid var(--accent); } .b-arena { border-bottom: 3px solid var(--arena); } .b-red { border-bottom: 3px solid var(--red); } .b-green { border-bottom: 3px solid var(--green); } .b-yellow { border-bottom: 3px solid var(--yellow); }
+
+        .data-table { width: 100%; border-collapse: collapse; background: rgba(20, 20, 24, 0.65)!important; border-radius: 12px; overflow: hidden; border: 1.5px solid rgba(228,69,255,0.15)!important; box-shadow: 0 8px 32px 0 rgba(228,69,255,0.10)!important; backdrop-filter: blur(18px)!important; }
+        .data-table th { background: rgba(20, 20, 24, 0.9); color: #888; text-transform: uppercase; font-size: 0.75rem; padding: 15px 20px; text-align: left; font-weight: 800; }
+        .data-table td { padding: 15px 20px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .data-table tr:hover { background-color: var(--card-hover); }
+        .badge-t { padding: 4px 12px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px; }
+
+        .search-box { background: var(--bg-dark); border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; color: white; font-size: 0.85rem; outline: none; transition: 0.2s; width: 250px; }
+        .search-box:focus { border-color: var(--accent); }
+        
+        .fc { background: rgba(20, 20, 24, 0.65)!important; border: 1.5px solid rgba(228,69,255,0.15)!important; border-radius: 16px; padding: 28px; box-shadow: 0 8px 32px 0 rgba(228,69,255,0.10)!important; backdrop-filter: blur(18px)!important; }
+        /* Only style text-like inputs; do NOT clobber checkboxes/radios */
+        .fc input[type="text"],
+        .fc input[type="password"],
+        .fc input[type="number"],
+        .fc input[type="email"],
+        .fc input[type="search"],
+        .fc input[type="date"],
+        .fc textarea,
+        .fc select {
+            background: rgba(10,10,15,0.85)!important;
+            border: 1.5px solid rgba(255,255,255,0.10)!important;
+            color: white!important;
+            caret-color: white;
+            border-radius: 8px!important;
+            padding: 10px!important;
+            backdrop-filter: blur(18px)!important;
+        }
+
+        .fc input[type="text"]::placeholder,
+        .fc input[type="password"]::placeholder,
+        .fc input[type="number"]::placeholder,
+        .fc input[type="email"]::placeholder,
+        .fc input[type="search"]::placeholder,
+        .fc input[type="date"]::placeholder,
+        .fc textarea::placeholder,
+        .fc .form-control::placeholder,
+        .search-box::placeholder {
+            /* Keep placeholders clearly visible on dark bg */
+            color: var(--t2) !important;
+            opacity: 1 !important;
+            font-weight: 600;
+        }
+
+        /* Browser-specific placeholder selectors (Bootstrap + some browsers can override ::placeholder) */
+        .fc .form-control::-webkit-input-placeholder { color: var(--t2) !important; opacity: 1 !important; font-weight: 600; }
+        .fc .form-control::-moz-placeholder { color: var(--t2) !important; opacity: 1 !important; font-weight: 600; }
+        .fc .form-control:-ms-input-placeholder { color: var(--t2) !important; opacity: 1 !important; font-weight: 600; }
+        .fc .form-control::-ms-input-placeholder { color: var(--t2) !important; opacity: 1 !important; font-weight: 600; }
+
+        .fc .form-control:focus,
+        .fc .form-select:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 0.2rem var(--accent-glow) !important;
+        }
+        .fc label { font-size: 0.75rem; text-transform: uppercase; color: var(--t3); font-weight: 700; }
+        
         .bsec { display: none; }
-        .bsec.on { display: block; }
-        table { color: var(--t1) !important; --bs-table-bg: transparent; --bs-table-color: var(--t1); }
-        .form-control, .form-select { background: #0e0e15; border-color: rgba(255,255,255,.15); color: var(--t1); }
-        .form-control:focus, .form-select:focus { background: #0e0e15; color: var(--t1); }
-        .flash { padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; }
-        .flash.error { background: rgba(239,68,68,.12); color: #ef4444; }
-        .flash.success { background: rgba(16,185,129,.12); color: #10b981; }
+        .bsec.on { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Checkboxes */
+        .form-check-input {
+            appearance: auto !important;
+            -webkit-appearance: auto !important;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+        .form-check-label { cursor: pointer; }
+
+        /* Registrations */
+        .dupe-row { background: rgba(239, 68, 68, 0.08); }
     </style>
 </head>
-<body>
-    <div class="topbar">
-        <div class="brand">AI<span>BANK</span></div>
-        <div>
-            <span style="color:var(--t2)">{{ session.get('display_name', '') }}</span>
-            <a href="/logout">Sign out</a>
+<body class="{% if request.path == '/' %}page-home{% elif request.path == '/bank' %}page-bank{% elif request.path == '/admin' %}page-admin{% elif request.path == '/login' or request.path == '/register' %}page-auth{% endif %}">
+    <div class="sidebar">
+        <div class="sidebar-brand">AI<span>BANK</span></div>
+        <a href="/bank" class="nav-item active"><i class="bi bi-bank2"></i> Dashboard</a>
+
+        <a href="/logout" class="nav-item text-danger" style="margin-top:auto;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        
+        <div class="user-profile mt-3 p-2 d-flex align-items-center gap-3 glow-hover" style="border-radius:12px; background:rgba(255,255,255,0.03); cursor:pointer; transition:0.3s;" onclick="document.getElementById('profileModal').style.display='flex'">
+            <img src="{{ session.get('pfp') or '/cursors/cursor1.png' }}" alt="PFP" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border: 2px solid var(--accent);">
+            <div style="overflow:hidden;">
+                <div style="font-size:0.85rem; color:#fff; font-weight:700; white-space:nowrap; text-overflow:ellipsis;">{{ session.get('display_name', session.get('username')) }}</div>
+                <div style="font-size:0.65rem; color:var(--accent); text-transform:uppercase; font-weight:800; letter-spacing:1px;">{{ session.get('role') }}</div>
+            </div>
         </div>
     </div>
-    <div class="wrap">
-        {% for f in flashes %}
-        <div class="flash {{ f[0] }}">{{ f[1] }}</div>
-        {% endfor %}
+
+    <div class="main">
+        {% if flashes and flashes.length %}
+            {% for f in flashes %}
+                {% set category = f[0] %}
+                {% set message = f[1] %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} mb-4" style="background: var(--card-bg); border: 1px solid var(--{{ 'red' if category == 'error' else 'green' }}); color: #fff;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
         {% block content %}{% endblock %}
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Profile Edit Modal -->
+    <div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(8px);">
+        <div class="fc" style="width: 100%; max-width: 400px; position:relative; box-shadow: 0 0 40px rgba(99,102,241,0.2);">
+            <button onclick="document.getElementById('profileModal').style.display='none'" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:var(--t2); font-size:1.5rem;"><i class="bi bi-x"></i></button>
+            <h4 class="text-white fw-bold mb-4"><i class="bi bi-person-circle" style="color:var(--accent); margin-right:10px;"></i>Edit Profile</h4>
+            <form method="POST" action="/api/profile/edit">
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:1px;">Display Name</label>
+                    <input type="text" name="display_name" class="form-control" value="{{ session.get('display_name', '') }}" required maxlength="32" style="background:rgba(10,10,15,0.85); border:1px solid rgba(255,255,255,0.1); color:#fff;">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-muted" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:1px;">Avatar (GIF/PNG URL)</label>
+                    <input type="url" name="pfp" class="form-control" placeholder="https://..." value="{{ session.get('pfp', '') }}" style="background:rgba(10,10,15,0.85); border:1px solid rgba(255,255,255,0.1); color:#fff;">
+                    <div class="form-text" style="color:var(--t3); font-size:0.7rem; margin-top:5px;">Paste any direct image link from Discord or Imgur.</div>
+                </div>
+                <button type="submit" class="btn w-100 fw-bold text-white glow-hover" style="background:var(--accent);">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        function sw(name, el) {
-            document.querySelectorAll('.bsec').forEach(function (s) { s.classList.remove('on'); });
-            var target = document.getElementById('v-' + name);
-            if (target) target.classList.add('on');
-            document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('act'); });
-            if (el) el.classList.add('act');
-            return false;
+        function filterTable(inputId, tableId) {
+            var input = document.getElementById(inputId).value.toUpperCase();
+            var tr = document.getElementById(tableId).getElementsByTagName("tr");
+            for (var i = 1; i < tr.length; i++) {
+                if (tr[i].textContent.toUpperCase().indexOf(input) > -1) { tr[i].style.display = ""; } 
+                else { tr[i].style.display = "none"; }
+            }
         }
-        function toggleBal(hiddenId, visibleId, eyeId) {
-            var h = document.getElementById(hiddenId), v = document.getElementById(visibleId), e = document.getElementById(eyeId);
-            var hide = v.style.display !== 'none';
-            v.style.display = hide ? 'none' : '';
-            h.style.display = hide ? '' : 'none';
-            if (e) e.className = hide ? 'bi bi-eye' : 'bi bi-eye-slash';
+        function sw(v, el, colorType) {
+            document.querySelectorAll('.bsec').forEach(s => s.classList.remove('on'));
+            document.getElementById('v-' + v).classList.add('on');
+            document.querySelectorAll('.tab-item').forEach(n => { n.classList.remove('act','act-a'); });
+            if(el) el.classList.add(colorType === 'arena' ? 'act-a' : 'act');
+        }
+        function toggleBal(fakeId, realId, iconId) {
+            let fake = document.getElementById(fakeId);
+            let real = document.getElementById(realId);
+            let icon = document.getElementById(iconId);
+            if (real.style.display === "none") {
+                real.style.display = "inline"; fake.style.display = "none";
+                icon.classList.remove("bi-eye"); icon.classList.add("bi-eye-slash");
+            } else {
+                real.style.display = "none"; fake.style.display = "inline";
+                icon.classList.remove("bi-eye-slash"); icon.classList.add("bi-eye");
+            }
         }
     </script>
+        <!-- Particle Background -->
+        <canvas id="particle-bg" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
+        <script>
+        (function(){
+            const canvas = document.getElementById('particle-bg');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            let animationFrameId;
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            function createParticles() {
+                const particleCount = Math.floor(window.innerWidth / 10);
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 3 + 0.5,
+                        speedX: Math.random() * 0.5 - 0.25,
+                        speedY: Math.random() * 0.5 - 0.25,
+                        opacity: Math.random() * 0.5 + 0.1
+                    });
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p) => {
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.y > canvas.height) p.y = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(192, 132, 252, ${p.opacity})`;
+                    ctx.fill();
+                });
+                animationFrameId = requestAnimationFrame(animate);
+            }
+
+            window.addEventListener('resize', () => {
+                resize();
+                createParticles();
+            });
+
+            resize();
+            createParticles();
+            animate();
+        })();
+        </script>
 </body>
 </html>

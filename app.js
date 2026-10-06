@@ -186,6 +186,7 @@ app.post('/login', async (req, res) => {
       req.session.username = username;
       req.session.role = user.role || 'user';
       req.session.display_name = user.display_name || username;
+      req.session.pfp = user.pfp || '';
       res.redirect('/bank');
     });
   }
@@ -196,6 +197,29 @@ app.post('/login', async (req, res) => {
 
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
+});
+
+app.post('/api/profile/edit', loginRequired, async (req, res) => {
+  const displayName = String(req.body.display_name || '').trim();
+  const pfp = String(req.body.pfp || '').trim();
+  if (!displayName || displayName.length > 32) {
+    flash(req, 'error', 'Display name is required and must be 32 characters or fewer.');
+    return res.redirect('/bank');
+  }
+  if (pfp && !/^https?:\/\//i.test(pfp)) {
+    flash(req, 'error', 'Avatar must be an http(s) image URL.');
+    return res.redirect('/bank');
+  }
+  const users = await loadDb(FILES.USERS);
+  if (users[req.session.username]) {
+    users[req.session.username].display_name = displayName;
+    users[req.session.username].pfp = pfp;
+    await saveDb(FILES.USERS, users);
+    req.session.display_name = displayName;
+    req.session.pfp = pfp;
+    flash(req, 'success', 'Profile updated.');
+  }
+  res.redirect('/bank');
 });
 
 app.get('/', (req, res) => res.redirect(req.session.logged_in ? '/bank' : '/login'));
