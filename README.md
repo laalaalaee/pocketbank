@@ -16,7 +16,7 @@ A small banking / ledger dashboard: track a balance, submit transactions for app
 npm install
 cp .env.example .env        # then set SESSION_SECRET
 npm run seed                # creates demo data in data/
-npm start                   # http://localhost:9013
+npm start                   # http://localhost:3000
 ```
 
 Demo logins created by the seed script: `admin` / `admin123` (admin) and `demo` / `demo123` (regular user). Set `ADMIN_PASSWORD` when seeding to choose your own admin password. Change both before putting this anywhere public.
