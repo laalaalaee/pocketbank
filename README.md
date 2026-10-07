@@ -36,9 +36,10 @@ This started as the treasury module of Playstorm Esports Club's internal managem
 
 ## Roadmap
 
+- [ ] JSON API with per-user API keys, plus an embeddable widget
 - [ ] CSRF protection and login rate limiting
 - [ ] Move storage from JSON files to SQLite/Postgres
 - [ ] Multiple accounts per user and transfers between them
 - [ ] Charts and monthly statements
-- [ ] AI-assisted categorisation and spending insights
+- [ ] Spending categorisation and insights
 - [ ] Tests and CI
